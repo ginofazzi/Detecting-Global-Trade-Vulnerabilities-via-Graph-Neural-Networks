@@ -1,0 +1,5 @@
+FILES:
+- Node Attributes
+- Edge Attributes
+- train_graphs.pkl
+- test_graphs.pkl

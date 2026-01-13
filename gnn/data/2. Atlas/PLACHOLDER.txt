@@ -1,0 +1,10 @@
+FILES:
+hs12_country_country_product_year_4_2012_2016.dta
+hs12_country_country_product_year_4_2017_2021.dta
+hs12_country_country_product_year_4_2022.dta
+countries.csv
+product_hs12.csv
+location_country.csv
+
+SOURCE:
+https://atlas.hks.harvard.edu/data-downloads
