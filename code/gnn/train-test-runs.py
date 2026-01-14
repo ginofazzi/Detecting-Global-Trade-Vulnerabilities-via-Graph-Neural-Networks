@@ -26,9 +26,6 @@ from models import *
 
 import warnings
 warnings.filterwarnings("ignore")
-#import time; print("WE ARE WAITING..."); time.sleep(60*60*7.5)
-#print("REMEMBER TO SET THE CORRECT LOOP!")
-#import sys; sys.exit()
 
 ############################################
 ############### Settings ###################
@@ -54,7 +51,7 @@ print(f"{ablation_identifier} | {model_type} | {graph_identifier} :: {best_param
 
 # Load graphs
 print("Looking for pre-loaded graphs...")
-train_graphs, test_graphs = get_preloaded_graphs(path=f"../../data/graphs_data/{'multi-graph/' if multi_graph else ''}{graphs_type}")
+train_graphs, test_graphs = get_preloaded_graphs(path=f"../../data/5. Graphs Data/{'multi-graph/' if multi_graph else ''}{graphs_type}")
 print("Found pre-loaded graphs!")
 
 if (layered or multi_graph):

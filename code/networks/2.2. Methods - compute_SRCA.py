@@ -15,9 +15,9 @@ from utils import *
 
 
 # Load CPM
-with open('data/CPM_4d.pickle', 'rb') as f:
+with open('../../data/CPM_4d.pickle', 'rb') as f:
     compute_country_product_matrix_dict_4d = pickle.load(f)
-with open('data/CPM_2d.pickle', 'rb') as f:
+with open('../../data/CPM_2d.pickle', 'rb') as f:
     compute_country_product_matrix_dict_2d = pickle.load(f)
 
 
@@ -36,8 +36,8 @@ for year in range(2012, 2023):
 
 
 # Write SRCA
-with open('data/SRCA_4d.pickle', 'wb') as f:
+with open('../../data/SRCA_4d.pickle', 'wb') as f:
     pickle.dump(rca_dict_4d, f)
 
-with open('data/SRCA_2d.pickle', 'wb') as f:
+with open('../../data/SRCA_2d.pickle', 'wb') as f:
     pickle.dump(rca_dict_2d, f)

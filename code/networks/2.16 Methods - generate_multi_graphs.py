@@ -19,19 +19,19 @@ transaction = "total" # "import" or "export" or "total"
 
 ##################################
 
-df = pd.concat([pd.read_stata("../data/atlas/hs12_country_country_product_year_4_2012_2016.dta"),
-                pd.read_stata("../data/atlas/hs12_country_country_product_year_4_2017_2021.dta"),
-                pd.read_stata("../data/atlas/hs12_country_country_product_year_4_2022.dta")])
-products = pd.read_csv("../data/atlas/product_hs12.csv", dtype={"code": str})
-countries = pd.read_csv("../data/atlas/location_country.csv")
-trustworhiness = pd.read_csv("../data/graphs_data/trustworthiness_scores.csv", dtype={"cmd": str})
-geo_embeddings = pd.read_csv("./data/geo-embeddings.vec", sep=" ", skiprows=1, header=None)
+df = pd.concat([pd.read_stata("../../data/atlas/hs12_country_country_product_year_4_2012_2016.dta"),
+                pd.read_stata("../../data/atlas/hs12_country_country_product_year_4_2017_2021.dta"),
+                pd.read_stata("../../data/atlas/hs12_country_country_product_year_4_2022.dta")])
+products = pd.read_csv("../../data/atlas/product_hs12.csv", dtype={"code": str})
+countries = pd.read_csv("../../data/atlas/location_country.csv")
+trustworhiness = pd.read_csv("../../data/graphs_data/trustworthiness_scores.csv", dtype={"cmd": str})
+geo_embeddings = pd.read_csv("../../data/geo-embeddings.vec", sep=" ", skiprows=1, header=None)
 geo_embeddings.rename(columns={0: "iso3_code"}, inplace=True)
 geo_embeddings = countries[["country_id", "iso3_code"]].merge(geo_embeddings, on="iso3_code", how="left")
 geo_embeddings.fillna(0, inplace=True)
 geo_embeddings.drop("iso3_code", axis=1, inplace=True)
 geo_embeddings.columns = ["country_id"] + [f"geo_{x}" for x in geo_embeddings.columns[1:]]
-trading_agreements = pd.read_csv("../data/graphs_data/trading_agreements_edges.csv")
+trading_agreements = pd.read_csv("../../data/graphs_data/trading_agreements_edges.csv")
 
 # Include product code
 df = df.merge(products[["product_id", "code"]], how="left", on="product_id")
@@ -66,7 +66,7 @@ for year in range(2012,2023):
     risk = hhi_risk(trade_volumes, trade_col=f"{transaction}_value").reset_index().rename(columns={"trade_share": "risk"})
     node_features = node_features.merge(risk[["country_id", "risk"]], on="country_id", how="inner")
 
-    node_features.to_csv(f"../data/graphs_data/multi-graph/{transaction}/node_features-{year}-{transaction}.csv", index=False)
+    node_features.to_csv(f"../../data/graphs_data/multi-graph/{transaction}/node_features-{year}-{transaction}.csv", index=False)
 
     ### EDGES ###
     all_edges = pd.DataFrame()
@@ -108,6 +108,6 @@ for year in range(2012,2023):
         # Append this layer's edges
         all_edges = pd.concat([all_edges, edges])
         
-    all_edges.to_csv(f"../data/graphs_data/multi-graph/{transaction}/edge_features-{year}-{transaction}.csv", index=False)
+    all_edges.to_csv(f"../../data/graphs_data/multi-graph/{transaction}/edge_features-{year}-{transaction}.csv", index=False)
 
         

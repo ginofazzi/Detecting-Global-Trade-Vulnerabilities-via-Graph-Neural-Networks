@@ -11,7 +11,7 @@ from utils import *
 api_key = "<YOUR-API-KEY-HERE>"
 
 # Read full list of reporter codes (countries)
-reporters = pd.read_csv(f"../data/1. UN Comtrade/reporters.csv", dtype=str)
+reporters = pd.read_csv(f"../../data/1. UN Comtrade/reporters.csv", dtype=str)
 # Filter out old country denominations (e.g., Yugoslavia). They usually have the "(... former X)"
 reporters = reporters[~reporters.text.str.contains("(...", regex=False)]
 # Parse the country ids for the API

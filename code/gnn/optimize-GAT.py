@@ -13,7 +13,7 @@ ablate = "Trade Agreements"  # None, "COI", "ECI", "Geo-Positional", "HHI", "TI"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Device: ", device)
 
-train_graphs, test_graphs = get_preloaded_graphs(path=f"../../data/graphs_data/{'multi-graph/' if multi_graph else ''}{graphs_type}")
+train_graphs, test_graphs = get_preloaded_graphs(path=f"../../data/5. Graphs Data/{'multi-graph/' if multi_graph else ''}{graphs_type}")
 
 if (layered or multi_graph):
     print("Adding layer embeddings...")

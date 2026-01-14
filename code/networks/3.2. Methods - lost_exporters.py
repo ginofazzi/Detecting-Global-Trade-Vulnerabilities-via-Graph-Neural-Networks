@@ -9,12 +9,11 @@ from utils import *
 import itertools
 
 # Read data
-df = pd.concat([pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2012_2016.dta"),
-                pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2017_2021.dta"),
-                pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2022.dta")])
-products = pd.read_csv("../data/2. Atlas/product_hs12.csv")
-countries = pd.read_csv("../data/2. Atlas/location_country.csv")
-
+df = pd.concat([pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2012_2016.dta"),
+                pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2017_2021.dta"),
+                pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2022.dta")])
+products = pd.read_csv("../../data/2. Atlas/product_hs12.csv")
+countries = pd.read_csv("../../data/2. Atlas/location_country.csv")
 # Include product code
 df = df.merge(products[["product_id", "code"]], how="left", on="product_id")
 df.rename(columns={"code": "product_code"}, inplace=True)
@@ -97,4 +96,4 @@ for year in years[:-1]:
         print(f"Year {year} {i/len(rca_matrix):.3%}")
         
 
-df_impact_drop_exporters.to_csv("../data/df_impact_drop_exporters.csv", index=False)
+df_impact_drop_exporters.to_csv("../../data/df_impact_drop_exporters.csv", index=False)

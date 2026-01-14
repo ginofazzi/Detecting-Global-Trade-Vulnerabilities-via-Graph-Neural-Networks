@@ -18,10 +18,10 @@ transaction = "export" # "import" or "export" or "total"
 ##################################
 
 # Load Atlas data
-df = pd.concat([pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2012_2016.dta"),
-                pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2017_2021.dta"),
-                pd.read_stata("../data/2. Atlas/hs12_country_country_product_year_4_2022.dta")])
-products = pd.read_csv("../data/2. Atlas/product_hs12.csv", dtype={"code": str})
+df = pd.concat([pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2012_2016.dta"),
+                pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2017_2021.dta"),
+                pd.read_stata("../../data/2. Atlas/hs12_country_country_product_year_4_2022.dta")])
+products = pd.read_csv("../../data/2. Atlas/product_hs12.csv", dtype={"code": str})
 
 
 # Include product code
@@ -41,7 +41,7 @@ for y in range(2012, 2023):
                                               value_col=f"{transaction}_value"), on="country_id", how="left").fillna(0)
     
 # Save CPMs
-with open('../data/CPM_4d.pickle', 'wb') as f:
+with open('../../data/CPM_4d.pickle', 'wb') as f:
     pickle.dump(compute_country_product_matrix_dict, f)
 
 ##### CPM at 2-digit level #####
@@ -55,5 +55,5 @@ for y in range(2012, 2023):
                                               value_col=f"{transaction}_value"), on="country_id", how="left").fillna(0)
     
 # Save CPMs
-with open('../data/CPM_2d.pickle', 'wb') as f:
+with open('../../data/CPM_2d.pickle', 'wb') as f:
     pickle.dump(compute_country_product_matrix_dict, f)
