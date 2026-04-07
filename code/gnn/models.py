@@ -10,6 +10,8 @@ from torch_geometric.transforms import NormalizeFeatures
 import torch.nn as nn
 from transformers import RobertaTokenizer, RobertaModel, AutoModel, AutoTokenizer
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 
 ######### MODELS #########
 ## MLP
@@ -177,6 +179,94 @@ class RandomPredictor(torch.nn.Module):
     def eval(self):
         # Included just to match model API
         return super().eval()
+
+
+class RandomForest(torch.nn.Module):
+    def __init__(self, random_seed=None, **kwargs):
+        super().__init__()
+        kwargs.setdefault("n_jobs", -1)
+        if random_seed is not None:
+            kwargs.setdefault("random_state", random_seed)
+        self.model = RandomForestClassifier(**kwargs)
+
+    def _to_numpy(self, values):
+        if isinstance(values, torch.Tensor):
+            return values.detach().cpu().numpy()
+        return np.asarray(values)
+
+    def _features_from_input(self, graph_or_x):
+        if isinstance(graph_or_x, Data):
+            return self._to_numpy(graph_or_x.x)
+        return self._to_numpy(graph_or_x)
+
+    def fit(self, graph_or_x, y=None):
+        x = self._features_from_input(graph_or_x)
+        if y is None:
+            if not isinstance(graph_or_x, Data):
+                raise ValueError("Labels must be provided when fitting from raw features.")
+            y = graph_or_x.y
+        self.model.fit(x, self._to_numpy(y))
+        return self
+
+    def predict(self, graph_or_x):
+        predictions = self.model.predict(self._features_from_input(graph_or_x))
+        return torch.tensor(predictions, dtype=torch.long)
+
+    def predict_proba(self, graph_or_x):
+        probabilities = self.model.predict_proba(self._features_from_input(graph_or_x))
+        return torch.tensor(probabilities, dtype=torch.float32)
+
+    def forward(self, graph_or_x):
+        positive_probs = self.predict_proba(graph_or_x)[:, 1].clamp(1e-6, 1 - 1e-6)
+        return torch.logit(positive_probs)
+
+    def to(self, device):
+        return self
+
+
+class XGBoost(torch.nn.Module):
+    def __init__(self, random_seed=None, **kwargs):
+        super().__init__()
+        kwargs.setdefault("n_jobs", -1)
+        #kwargs.setdefault("use_label_encoder", False)
+        kwargs.setdefault("eval_metric", "logloss")
+        if random_seed is not None:
+            kwargs.setdefault("random_state", random_seed)
+        self.model = XGBClassifier(**kwargs)
+
+    def _to_numpy(self, values):
+        if isinstance(values, torch.Tensor):
+            return values.detach().cpu().numpy()
+        return np.asarray(values)
+
+    def _features_from_input(self, graph_or_x):
+        if isinstance(graph_or_x, Data):
+            return self._to_numpy(graph_or_x.x)
+        return self._to_numpy(graph_or_x)
+
+    def fit(self, graph_or_x, y=None):
+        x = self._features_from_input(graph_or_x)
+        if y is None:
+            if not isinstance(graph_or_x, Data):
+                raise ValueError("Labels must be provided when fitting from raw features.")
+            y = graph_or_x.y
+        self.model.fit(x, self._to_numpy(y))
+        return self
+
+    def predict(self, graph_or_x):
+        predictions = self.model.predict(self._features_from_input(graph_or_x))
+        return torch.tensor(predictions, dtype=torch.long)
+
+    def predict_proba(self, graph_or_x):
+        probabilities = self.model.predict_proba(self._features_from_input(graph_or_x))
+        return torch.tensor(probabilities, dtype=torch.float32)
+
+    def forward(self, graph_or_x):
+        positive_probs = self.predict_proba(graph_or_x)[:, 1].clamp(1e-6, 1 - 1e-6)
+        return torch.logit(positive_probs)
+
+    def to(self, device):
+        return self
 
     
 ######### LOSS FUNCTIONS #########

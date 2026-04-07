@@ -161,6 +161,32 @@ def get_preloaded_graphs(path="."):
   return train_graphs, test_graphs
 
 
+def split_graphs_for_validation(graphs, train_ratio=0.8, random_seed=None):
+  graphs_with_pos = [g for g in graphs if g.y.sum() > 0]
+  graphs_without_pos = [g for g in graphs if g not in graphs_with_pos]
+
+  if len(graphs_with_pos) < 2:
+    return graphs, graphs
+
+  if len(graphs_without_pos) > 0:
+    train_graphs_pos, valid_graphs_pos = train_test_split(
+      graphs_with_pos, train_size=train_ratio, random_state=random_seed, shuffle=True
+    )
+    train_graphs_w_pos, valid_graphs_w_pos = train_test_split(
+      graphs_without_pos, train_size=train_ratio, random_state=random_seed, shuffle=True
+    )
+    train_split = train_graphs_pos + train_graphs_w_pos
+    valid_split = valid_graphs_pos + valid_graphs_w_pos
+  else:
+    train_split, valid_split = train_test_split(
+      graphs_with_pos, train_size=train_ratio, random_state=random_seed, shuffle=True
+    )
+
+  random.Random(random_seed).shuffle(train_split)
+  random.Random(random_seed).shuffle(valid_split)
+  return train_split, valid_split
+
+
 def train_layers(model, train_graphs, optimizer, criterion, epochs=100):
 
   model.train()
@@ -208,20 +234,9 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
     best_val_loss = float("inf")
     patience_counter = 0
 
-    graphs_with_pos = [g for g in train_graphs if g.y.sum() > 0] # Graph containing positive labels
-    graphs_without_pos = [g for g in train_graphs if g not in graphs_with_pos] # Graphs without positive labels
-
-    if len(graphs_without_pos) > 0: # If there are no empty graphs
-      train_graphs_pos, valid_graphs_pos = train_test_split(graphs_with_pos, train_size=train_ratio, random_state=random_seed, shuffle=True)
-      train_graphs_w_pos, valid_graphs_w_pos = train_test_split(graphs_without_pos, train_size=train_ratio, random_state=random_seed, shuffle=True)
-      train_graphs = train_graphs_pos + train_graphs_w_pos # Reuse the graphs without positive labels
-      valid_graphs = valid_graphs_pos + valid_graphs_w_pos # Reuse the graphs without positive labels
-    else:
-      train_graphs, valid_graphs = train_test_split(graphs_with_pos, train_size=train_ratio, random_state=random_seed, shuffle=True)
-
-    # Shuffle graphs
-    random.Random(random_seed).shuffle(train_graphs)
-    random.Random(random_seed).shuffle(valid_graphs)
+    train_graphs, valid_graphs = split_graphs_for_validation(
+      train_graphs, train_ratio=train_ratio, random_seed=random_seed
+    )
 
     train_idx = list(range(len(train_graphs))) # Indeces for batching
 
@@ -658,3 +673,49 @@ def safe_optimize(study, objective, n_trials, gc_after_trial, n_jobs, timeout):
               print(f"DB locked, retrying in {backoff}s…")
               time.sleep(backoff)
               backoff = min(backoff * 2, 60)  # exponential backoff up to 1m
+
+
+
+def parse_database_to_storage(database):
+    return f"sqlite:///{database}"
+
+
+def get_optuna_studies_from_db(database):
+   
+   studies = optuna.get_all_study_summaries(storage=parse_database_to_storage(database))
+
+   return studies
+
+
+   
+def get_best_hyperparameters_from_otpuna_db(database):
+
+
+  studies = get_optuna_studies_from_db(database)
+
+  print(studies)
+
+  d = {}
+
+  for s in studies:
+
+    try:
+      study = optuna.load_study(
+          study_name=s.study_name,
+          storage=parse_database_to_storage(database)
+      )
+      
+      print(f"\nStudy: {s.study_name}")
+      print("Best value:", study.best_value)
+      print("Best params:", study.best_params)
+
+      if s.study_name not in d:
+          d[s.study_name] = study.best_params
+
+    except:
+       print(f"Failed to load study {s.study_name}, skipping.")
+
+
+  return d
+
+    
