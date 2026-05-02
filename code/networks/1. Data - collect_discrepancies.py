@@ -6,12 +6,15 @@ Used to compute the Trustworthiness index.
 
 from utils import *
 
+READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["UN Comtrade Reporters"], write_datasets=["UN Comtrade Bilateral Trade Data"])
 
 # Discrepancies
 api_key = "<YOUR-API-KEY-HERE>"
 
 # Read full list of reporter codes (countries)
-reporters = pd.read_csv(f"../../data/1. UN Comtrade/reporters.csv", dtype=str)
+reporters = pd.read_csv(READ_DATA_PATHS["UN Comtrade Reporters"], dtype=str)
+
+
 # Filter out old country denominations (e.g., Yugoslavia). They usually have the "(... former X)"
 reporters = reporters[~reporters.text.str.contains("(...", regex=False)]
 # Parse the country ids for the API
@@ -42,6 +45,8 @@ for year in range(2012, 2023):
 
         df = getBilateralData(subscription_key=api_key, typeCode='C', freqCode='A', clCode='HS', period=year,\
                                reporterCode=reporters, cmdCode=cmdCode, flowCode="X", partnerCode=reporters, includeDesc=False)
+        if df is None:
+            continue
         df = df[cols]
         all_dfs.append(df)
 
@@ -49,4 +54,4 @@ for year in range(2012, 2023):
 
 # Save all DFs to disk
 all_dfs = pd.concat(all_dfs)
-all_dfs.to_parquet("bilateral.parquet", index=False)
+all_dfs.to_parquet(WRITE_DATA_PATHS["UN Comtrade Bilateral Trade Data"], index=False)

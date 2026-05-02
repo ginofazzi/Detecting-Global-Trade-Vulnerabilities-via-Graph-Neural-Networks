@@ -9,6 +9,69 @@ import math
 import urllib3
 import json
 import networkx as nx
+import os
+import yaml
+
+
+def find_relative_path_to_root(absolute_path, root_directory):
+    # Normalize path for consistency
+    absolute_path = os.path.normpath(absolute_path)
+
+    # Split into parts
+    parts = absolute_path.split(os.sep)
+
+    if root_directory not in parts:
+        raise ValueError(f"Root directory '{root_directory}' not found in path")
+
+    # Find index of root directory
+    root_index = parts.index(root_directory)
+
+    # Number of levels below root
+    levels_below = len(parts) - root_index - 1
+
+    # Build relative path
+    return "../" * levels_below
+
+
+
+def resolve_paths(read_datasets: list, write_datasets: list):
+
+    # Find root path
+    current_path = os.getcwd()
+    path_to_yaml = find_relative_path_to_root(absolute_path=current_path, 
+                                              root_directory="Detecting-Global-Trade-Vulnerabilities-via-Graph-Neural-Networks") \
+                    + "data/"
+
+    if not os.path.exists(path_to_yaml + "DATA_PATHS.yaml"):
+        raise FileNotFoundError(f"DATA_PATHS.yaml not found at {path_to_yaml + 'DATA_PATHS.yaml'}. Please check the path and try again.")
+
+    with open(path_to_yaml + "DATA_PATHS.yaml") as stream:
+        try:
+            print(f"Loading DATA_PATHS.yaml from {path_to_yaml + 'DATA_PATHS.yaml'}")
+            DATA_PATHS = yaml.safe_load(stream)
+        except Exception as exc:
+            print(f"Error loading YAML file {path_to_yaml + 'DATA_PATHS.yaml'}: {exc}")
+
+    for dataset in read_datasets + write_datasets:
+        if dataset not in DATA_PATHS["LOCAL_DATA_PATH"] and dataset not in DATA_PATHS["WRITING_PATHS"]:
+            raise ValueError(f"Dataset {dataset} not found in DATA_PATHS.yaml. Please check the dataset name and try again.")
+        
+    return {dataset: DATA_PATHS["LOCAL_DATA_PATH"][dataset] for dataset in read_datasets}, {dataset: DATA_PATHS["WRITING_PATHS"][dataset] for dataset in write_datasets}
+
+
+def load_atlas_data(data_path):
+    
+    files = ["hs12_country_country_product_year_4_2012_2016.dta", "hs12_country_country_product_year_4_2017_2021.dta",
+              "hs12_country_country_product_year_4_2022.dta"]
+    
+    if not data_path.endswith("/"):
+        data_path = data_path + "/"
+
+    for file in files:
+        if not os.path.exists(f"{data_path}{file}"):
+            raise FileNotFoundError(f"File {file} does not exist in path {data_path}. Please check the path and try again.")
+
+    return pd.concat([pd.read_stata(f"{data_path}{f}") for f in files])
 
 
 def getBilateralData(subscription_key, typeCode, freqCode, clCode, period, reporterCode, cmdCode,
