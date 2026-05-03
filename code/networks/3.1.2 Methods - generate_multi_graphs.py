@@ -17,7 +17,7 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Trade Da
                                                 write_datasets=["Graphs Data"])
 
 ############ SETTINGS ############
-transaction = "total" # "import" or "export" or "total"
+transaction = "total" # "export" or "total"
 digits = 4 # 2 or 4
 ##################################
 
@@ -48,8 +48,6 @@ df["total_value"] = df.export_value + df.import_value
 # Scaler for features
 scaler = StandardScaler()
 
-# Start with country list
-nodes_full = countries[["country_id", "country", "iso_code"]]
 
 for year in range(2012,2023):
     
@@ -57,6 +55,9 @@ for year in range(2012,2023):
 
     ### NODE FEATURES FOR THE YEAR ###
     
+    # Start with country list
+    nodes_full = countries[["country_id", "country", "iso_code"]]
+
     # Add COI and ECI year
     countries_attr = df.loc[df.year == year, ["country_id", "coi", "eci"]].drop_duplicates(subset="country_id", keep="first")
     nodes_full = nodes_full.merge(countries_attr, on="country_id", how="left").fillna(0)
@@ -70,7 +71,8 @@ for year in range(2012,2023):
     risk = hhi_risk(trade_volumes, trade_col=f"{transaction}_value").reset_index().rename(columns={"trade_share": "risk"})
     node_features = node_features.merge(risk[["country_id", "risk"]], on="country_id", how="inner")
 
-    node_features.to_csv(READ_DATA_PATHS["Graphs Data"] + f"/multi-graph/{transaction}/node_features-{year}-{transaction}.csv", index=False)
+    os.makedirs(WRITE_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/multi-graph/{transaction}", exist_ok=True)
+    node_features.to_csv(WRITE_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/multi-graph/{transaction}/node_features-{year}-{transaction}.csv", index=False)
 
     ### EDGES ###
     all_edges = pd.DataFrame()
@@ -112,7 +114,8 @@ for year in range(2012,2023):
 
         # Append this layer's edges
         all_edges = pd.concat([all_edges, edges])
-        
-    all_edges.to_csv(READ_DATA_PATHS["Graphs Data"] + f"/multi-graph/{transaction}/edge_features-{year}-{transaction}.csv", index=False)
+    
+    os.makedirs(WRITE_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/multi-graph/{transaction}", exist_ok=True)
+    all_edges.to_csv(WRITE_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/multi-graph/{transaction}/edge_features-{year}-{transaction}.csv", index=False)
 
         

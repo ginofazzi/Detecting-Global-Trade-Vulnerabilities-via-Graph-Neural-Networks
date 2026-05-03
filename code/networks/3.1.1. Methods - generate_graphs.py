@@ -57,9 +57,6 @@ df["total_value"] = df.export_value + df.import_value
 # Scaler for features
 scaler = StandardScaler()
 
-# Start with country list
-nodes_full = countries[["country_id", "country", "iso_code"]]
-
 for product_code in sorted(list(df.product_code.unique())):
 
     if (product_code.startswith("77") or product_code.startswith("98") or
@@ -71,6 +68,9 @@ for product_code in sorted(list(df.product_code.unique())):
         print(f"{product_code} - {year}")
         
         subset = df[(df.year==year) & (df.product_code.str.startswith(product_code))]
+
+        # Start with country list
+        nodes_full = countries[["country_id", "country", "iso_code"]]
 
         prod_subset = subset[(subset[f"{transaction}_value"] > 0)]
         unique_prods = prod_subset[["country_id", "product_id"]].groupby("country_id").nunique().reset_index()

@@ -34,5 +34,6 @@ Thumbs.db
 *.pt
 *.pth
 data/
+data/DATA_PATHS.yaml
 code/gnn/results/
 code/gnn/models/training/
