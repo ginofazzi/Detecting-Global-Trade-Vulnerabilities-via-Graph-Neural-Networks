@@ -124,16 +124,19 @@ Retrieve via the API using the script: `at code/networks/1. Data - collect_discr
         
 4. Additional data sources:
 Download the following publicly available datasets:
-    - 4.1. Trading agreements.xlsx			        |	https://wits.worldbank.org/gptad/library.aspx
-    - 4.2.1 DISCREPANCY_INDEX_H5_2017_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.2.2 DISCREPANCY_INDEX_H5_2018_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.2.3 DISCREPANCY_INDEX_H5_2019_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.2.4 DISCREPANCY_INDEX_H5_2020_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.2.5 DISCREPANCY_INDEX_H5_2021_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.2.6 DISCREPANCY_INDEX_H5_2022_csv.zip		|	https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5
-    - 4.3 Corruption Perception Index.csv		    |	https://www.transparency.org/en/cpi/2023/index/dnk
-    - 4.4 Country Borders.txt				        |	http://download.geonames.org/export/dump/countryInfo.txt
-    - 4.5 CERDI-seadistance.xlsx			        |	https://zenodo.org/records/46822#.VvFcNWMvyjp
+
+| File | Link |
+| --- | --- |
+| `Trading agreements.xlsx` | https://wits.worldbank.org/gptad/library.aspx |
+| `DISCREPANCY_INDEX_H5_2017_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `DISCREPANCY_INDEX_H5_2018_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `DISCREPANCY_INDEX_H5_2019_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `DISCREPANCY_INDEX_H5_2020_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `DISCREPANCY_INDEX_H5_2021_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `DISCREPANCY_INDEX_H5_2022_csv.zip` | https://datacatalog.worldbank.org/search/dataset/0064901/Discrepancy-Index-H5 |
+| `Corruption Perception Index.csv` | https://www.transparency.org/en/cpi/2023/index/dnk |
+| `Country Borders.txt` | http://download.geonames.org/export/dump/countryInfo.txt |
+| `CERDI-seadistance.xlsx` | https://zenodo.org/records/46822#.VvFcNWMvyjp |
 
 Once downloaded, you should include the paths to each file in the DATA_PATHS.yaml. A recommended path structure is provided in the file.
 
