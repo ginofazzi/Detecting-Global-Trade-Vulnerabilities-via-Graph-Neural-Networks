@@ -17,7 +17,7 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Trade Da
                                                 write_datasets=["Graphs Data"])
 
 ############ SETTINGS ############
-transaction = "total" # "export" or "total"
+transaction = "export" # "export" or "total"
 digits = 4 # 2 or 4
 ##################################
 

@@ -3,133 +3,103 @@
         {
         "RandomForest": {
             "total": {
-                "n_estimators": 500,
-                "max_depth": 20,
-                "min_samples_split": 2,
-                "min_samples_leaf": 4,
-                "max_features": 0.5,
-                "class_weight": null
+                "n_estimators": 200,
+                "max_depth": null,
+                "min_samples_split": 5,
+                "min_samples_leaf": 1
             },
             "multi-graph-total": {
                 "n_estimators": 200,
-                "max_depth": 10,
-                "min_samples_split": 10,
-                "min_samples_leaf": 2,
-                "max_features": "sqrt",
-                "class_weight": null
+                "max_depth": 20,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1
             },
             "export": {
-                "n_estimators": 500,
-                "max_depth": 10,
-                "min_samples_split": 2,
-                "min_samples_leaf": 2,
-                "max_features": 0.5,
-                "class_weight": null
+                "n_estimators": 100,
+                "max_depth": 30,
+                "min_samples_split": 5,
+                "min_samples_leaf": 1
             },
             "export-layered": {
-                "n_estimators": 500,
-                "max_depth": 50,
-                "min_samples_split": 2,
-                "min_samples_leaf": 4,
-                "max_features": 0.5,
-                "class_weight": null
+                "n_estimators": 300,
+                "max_depth": null,
+                "min_samples_split": 5,
+                "min_samples_leaf": 1
             },
             "multi-graph-export": {
-                "n_estimators": 200,
-                "max_depth": 10,
-                "min_samples_split": 10,
-                "min_samples_leaf": 2,
-                "max_features": 0.5,
-                "class_weight": null
+                "n_estimators": 300,
+                "max_depth": 30,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1
             }            
         },
         "XGBoost": {
             "multi-graph-total": {
-                "n_estimators": 100,
-                "learning_rate": 0.0462669651305458,
+                "learning_rate": 0.09706270460697711,
                 "max_depth": 7,
-                "min_child_weight": 5,
-                "subsample": 1.0,
-                "colsample_bytree": 1.0,
-                "gamma": 0.1,
-                "reg_alpha": 0.1,
-                "reg_lambda": 5.0,
-                "use_scale_pos_weight": true
+                "min_child_weight": 1,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8
             },
             "total": {
-                "n_estimators": 200,
-                "learning_rate": 0.05398498862409235,
+                "learning_rate": 0.09875203863202935,
                 "max_depth": 7,
-                "min_child_weight": 3,
-                "subsample": 1.0,
-                "colsample_bytree": 0.6,
-                "gamma": 0.3,
-                "reg_alpha": 1.0,
-                "reg_lambda": 1.0,
-                "use_scale_pos_weight": false
+                "min_child_weight": 5,
+                "subsample": 0.6,
+                "colsample_bytree": 0.8
             },
             "export": {
-                "n_estimators": 800,
-                "learning_rate": 0.09986145210703357,
+                "learning_rate": 0.0994949925583124,
                 "max_depth": 7,
-                "min_child_weight": 3,
-                "subsample": 0.8,
-                "colsample_bytree": 1.0,
-                "gamma": 0.3,
-                "reg_alpha": 1.0,
-                "reg_lambda": 5.0,
-                "use_scale_pos_weight": 42.4458
+                "min_child_weight": 1,
+                "subsample": 0.6,
+                "colsample_bytree": 0.8
             },
             "export-layered": {
-                "n_estimators": 800,
-                "learning_rate": 0.019571239571452063,
+                "learning_rate": 0.09799124691245496,
                 "max_depth": 7,
-                "min_child_weight": 1,
-                "subsample": 0.8,
-                "colsample_bytree": 0.6,
-                "gamma": 0.1,
-                "reg_alpha": 0.1,
-                "reg_lambda": 1.0,
-                "use_scale_pos_weight": false
+                "min_child_weight": 10,
+                "subsample": 1.0,
+                "colsample_bytree": 0.8
             },
             "multi-graph-export": {
-                "n_estimators": 500,
-                "learning_rate": 0.09428340070539208,
-                "max_depth": 4,
-                "min_child_weight": 1,
-                "subsample": 1.0,
-                "colsample_bytree": 1.0,
-                "gamma": 0.3,
-                "reg_alpha": 1.0,
-                "reg_lambda": 1.0,
-                "use_scale_pos_weight": false
+                "learning_rate": 0.09689442706174727,
+                "max_depth": 7,
+                "min_child_weight": 5,
+                "subsample": 0.6,
+                "colsample_bytree": 1.0
             }
         },
         "MLP": {
             "export": {
                 "hidden_channels": 128,
                 "lr": 0.0006716877206515364,
-                "dropout": 0.20581484677320605
+                "dropout": 0.20581484677320605,
+                "optimizer": "AdamW"
             },
             "total": {
                 "hidden_channels": 128,
                 "lr": 0.0014533225139631751,
-                "dropout": 0.255192655111256
+                "dropout": 0.255192655111256,
+                "optimizer": "AdamW"
             },
             "export-layered": {
                 "hidden_channels": 128,
                 "lr": 0.0003383276071800748,
-                "dropout": 0.24018624396779079
+                "dropout": 0.24018624396779079,
+                "optimizer": "AdamW"
             },
             "multi-graph-export": {
                 "hidden_channels": 64,
                 "lr": 0.00855180112588968,
-                "dropout": 0.33109524080545294
+                "dropout": 0.33109524080545294,
+                "optimizer": "AdamW"
             },
             "multi-graph-total": {
                 "hidden_channels": 128,
                 "lr": 0.005079030563534188,
-                "dropout": 0.43672401958057316
+                "dropout": 0.43672401958057316,
+                "optimizer": "AdamW"
             }
         },
         "GCN": {

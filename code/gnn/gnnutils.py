@@ -719,3 +719,56 @@ def get_best_hyperparameters_from_otpuna_db(database):
   return d
 
     
+def stack_graph_data(graphs):
+    x = torch.cat([graph.x for graph in graphs], dim=0)
+    y = torch.cat([graph.y for graph in graphs], dim=0)
+    return x, y
+
+
+def tune_threshold(model, validation_graphs, threshold_candidates=None, device="cpu"):
+    if threshold_candidates is None:
+        threshold_candidates = np.linspace(0.05, 0.95, 91)
+
+    model = model.to(device)
+    model.eval()
+
+    valid_probs = []
+    valid_labels = []
+
+    with torch.no_grad():
+        for graph in validation_graphs:
+            graph = graph.to(device)
+            out = model(graph)
+            valid_probs.append(torch.sigmoid(out).detach().cpu())
+            valid_labels.append(graph.y.detach().cpu())
+
+    valid_probs = torch.cat(valid_probs).numpy()
+    y_valid_np = torch.cat(valid_labels).numpy()
+
+    best_threshold = 0.5
+    best_f1 = -1.0
+
+    for threshold in threshold_candidates:
+        threshold_preds = (valid_probs > threshold).astype(int)
+        threshold_f1 = f1_score(y_valid_np, threshold_preds, pos_label=1, average="binary", zero_division=0)
+
+        if threshold_f1 > best_f1:
+            best_threshold = float(threshold)
+            best_f1 = float(threshold_f1)
+
+    print(f"Tuned threshold on validation split: {best_threshold:.2f} (hard F1: {best_f1:.4f})")
+    return best_threshold
+
+
+def fit_and_tune_threshold(model_cls, model_kwargs, train_graphs, random_seed, train_ratio=0.8):
+    #threshold_candidates = np.linspace(0.05, 0.95, 91)
+    threshold_candidates = np.linspace(0.05, 0.95, 50)
+    threshold_search_train_graphs, threshold_search_valid_graphs = split_graphs_for_validation(
+        train_graphs, train_ratio=train_ratio, random_seed=random_seed
+    )
+
+    x_train_split, y_train_split = stack_graph_data(threshold_search_train_graphs)
+
+    threshold_model = model_cls(random_seed=random_seed, **model_kwargs)
+    threshold_model.fit(x_train_split, y_train_split)
+    return tune_threshold(threshold_model, threshold_search_valid_graphs, threshold_candidates=threshold_candidates)

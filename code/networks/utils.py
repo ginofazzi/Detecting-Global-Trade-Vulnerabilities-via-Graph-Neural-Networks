@@ -1,5 +1,7 @@
 
 # UTILS
+from encodings.punycode import digits
+
 import numpy as np
 import pandas as pd
 import torch
@@ -475,3 +477,16 @@ def maritime_distance_to_weight(distances, max_distance=20037.5, epsilon=0.01):
     distances = np.clip(np.array(distances), 0, max_distance)
     weights = epsilon + (1 - epsilon) * (1 - distances / max_distance)
     return weights
+
+
+def get_product_list(digits=2):
+    READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Products Data"], write_datasets=[])
+
+    products = pd.read_csv(READ_DATA_PATHS["Atlas Products Data"], dtype={"code": str})
+    products["code"] = products["code"].str[:digits] ## Reduce product code to x digits
+    return sorted([x for x in products.code.unique() if 
+                       not x.startswith('77') and 
+                       not x.startswith('98') and 
+                       not x.startswith('99') and 
+                       not x.startswith('XX') and
+                       len(x) == digits])

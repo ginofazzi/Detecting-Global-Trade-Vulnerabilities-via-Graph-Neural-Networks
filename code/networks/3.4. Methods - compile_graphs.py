@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import sys;sys.path.append("../gnn")
-from utils import *
+from utils import get_product_list, resolve_paths, load_atlas_data
 from gnnutils import load_graph, load_data, feature_sanity_check, print_graph_info, save_object
 
 READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Trade Data",
@@ -21,10 +21,11 @@ digits = 4 # 2 or 4
 ################
 
 # Read data
-labels = pd.read_csv(READ_DATA_PATHS["Graphs Data"] + f"{digits}_digits/labels-affected_importers.csv", dtype={"product_code": str})
+labels = pd.read_csv(READ_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/labels-affected_importers.csv", dtype={"product_code": str})
 labels.drop_duplicates(inplace=True) # Some countries might be "affected" by more than one exporter lost
-products = pd.read_csv(READ_DATA_PATHS["Atlas Products Data"], dtype={"code": str})
+products = get_product_list(digits=digits)
 
+print(products[:10])
 label_map = {"affected_importer": 1, "not_affected": 0}
 
 print("Loading data... (takes around 1h30)")
@@ -32,7 +33,7 @@ print("Loading data... (takes around 1h30)")
 train_graphs = []
 test_graphs = []
 
-graphs_root_path = READ_DATA_PATHS["Graphs Data"] + {'multi-graph' if multi_graph else ''} + f"{digits}_digits/{graphs_type}"
+graphs_root_path = READ_DATA_PATHS["Graphs Data"] + f"{'multi-graph' if multi_graph else ''}/{digits}_digits/{graphs_type}"
 
 if multi_graph:
   # We don't care for individual products
@@ -56,8 +57,7 @@ if multi_graph:
   
 
 else:
-  for i, prod_code in enumerate([x for x in list(products.code.unique()) if not (x.startswith('77') or x.startswith('98') or len(x) != digits)]):
-      # Product Codes 77 & 98 don't exist. 99 is not present in BACI
+  for i, prod_code in enumerate(products):
 
       train_graphs += load_data(years=list(range(2012,2021)), code=prod_code, labels=labels, label_map=label_map, suffix=graphs_type, \
                                   root_path=graphs_root_path)
@@ -78,7 +78,7 @@ else:
       #       root_path=graphs_root_path
       #       )
       # )
-      print(f"{i/100:.2%}")
+      print(f"{i/len(products):.2%}")
 
 for graph in train_graphs:
   feature_sanity_check(graph)

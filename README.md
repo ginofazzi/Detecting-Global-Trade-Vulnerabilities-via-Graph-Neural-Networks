@@ -138,8 +138,6 @@ Download the following publicly available datasets:
 | `Country Borders.txt` | http://download.geonames.org/export/dump/countryInfo.txt |
 | `CERDI-seadistance.xlsx` | https://zenodo.org/records/46822#.VvFcNWMvyjp |
 
-Once downloaded, you should include the paths to each file in the DATA_PATHS.yaml. A recommended path structure is provided in the file.
-
 
 ## Repository Structure
 
