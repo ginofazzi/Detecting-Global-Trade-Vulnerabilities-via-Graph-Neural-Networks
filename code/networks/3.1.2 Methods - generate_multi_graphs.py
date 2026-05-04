@@ -96,7 +96,8 @@ for year in range(2012,2023):
         edges.loc[:, "trade_agreement"] = edges["trade_agreement"].fillna(0)
 
         # Add Trustworthiness
-        trustworthiness_year_product = trustworhiness.loc[(trustworhiness.year == year) & (trustworhiness.cmd == product_code), ["country_id", "trustworthiness"]]
+        trustworthiness_year_product = trustworhiness.loc[
+            (trustworhiness.year == year) & (trustworhiness.cmd == product_code[:2]), ["country_id", "trustworthiness"]]
         mean_trust = trustworthiness_year_product["trustworthiness"].mean()
         edges = edges.merge(trustworthiness_year_product, left_on="src", right_on="country_id", how="left").rename(columns={"trustworthiness": "trust_src"})
         edges["trust_src"] = edges["trust_src"].fillna(mean_trust) # Fill with mean trust

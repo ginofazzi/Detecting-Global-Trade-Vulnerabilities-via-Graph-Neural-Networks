@@ -78,12 +78,15 @@ else:
       #       root_path=graphs_root_path
       #       )
       # )
+      if i % 10 == 0:
+        save_object(train_graphs, graphs_root_path + "/train-graphs.pkl")
+        save_object(test_graphs, graphs_root_path + "/test-graphs.pkl")
       print(f"{i/len(products):.2%}")
 
 for graph in train_graphs:
   feature_sanity_check(graph)
   print_graph_info(graph)
-
+  
 save_object(train_graphs, graphs_root_path + "/train-graphs.pkl")
 save_object(test_graphs, graphs_root_path + "/test-graphs.pkl")
 #save_object(test_graphs,  graphs_root_path + "/test-2022-graphs.pkl")

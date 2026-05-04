@@ -102,7 +102,10 @@ for product_code in sorted(list(df.product_code.unique())):
         risk = hhi_risk(trade_volumes, trade_col=f"{transaction}_value").reset_index().rename(columns={"trade_share": "risk"})
 
         node_features = node_features.merge(risk[["country_id", "risk"]], on="country_id", how="inner")
-        node_features = node_features.merge(trustworhiness.loc[(trustworhiness.year == year) & (trustworhiness.cmd == product_code), ["country_id", "trustworthiness"]], on="country_id", how="left")
+        node_features = node_features.merge(
+            trustworhiness.loc[(trustworhiness.year == year) & 
+                               (trustworhiness.cmd == product_code[:2]), ["country_id", "trustworthiness"]], 
+                               on="country_id", how="left")
         mean_trust = node_features["trustworthiness"].mean()
         node_features["trustworthiness"] = node_features["trustworthiness"].fillna(mean_trust) # Fill with mean trust
         node_features.loc[node_features.trustworthiness == 0, "trustworthiness"] = 0.001 # To avoid zero error in log

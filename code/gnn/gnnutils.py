@@ -97,7 +97,7 @@ def load_data(years, code, suffix, labels, label_map, root_path="../data/graphs_
   data_list = []
   # Define multiple graphs
   for y in years:
-    print(f"{root_path}/{y}-{code}-{suffix}")
+    #print(f"{root_path}/{y}-{code}-{suffix}")
     g = load_graph(graph_name=f"{y}-{code}-{suffix}", labels=labels.loc[(labels.year==y) & (labels.product_code==code), ["country_id", "label"]], label_map=label_map, root_path=root_path)
     data_list.append(g)
 
