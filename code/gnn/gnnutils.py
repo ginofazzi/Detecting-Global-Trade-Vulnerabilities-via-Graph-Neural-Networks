@@ -52,6 +52,14 @@ def add_labels(node_df, labels):
 
 
 def generate_edge_index(edge_list, node_df):
+
+  for x in edge_list["src"].unique():
+    if x not in node_df.country_id.values:
+      raise Exception(f"Source node {x} not found in node dataframe.")
+  for x in edge_list["tgt"].unique():
+    if x not in node_df.country_id.values:
+      raise Exception(f"Target node {x} not found in node dataframe.")
+    
   src = [node_df[node_df.country_id == x].index[0] for x in edge_list["src"]]
   dst = [node_df[node_df.country_id == x].index[0] for x in edge_list["tgt"]]
   edge_index = torch.tensor([src, dst], dtype=torch.int64)
@@ -228,7 +236,7 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
     if not os.path.exists(save_path):
             os.mkdir(save_path)
 
-    with open(f"./{save_path}/training-s{random_seed}.log", "w") as f:
+    with open(f"{save_path}/training-s{random_seed}.log", "w") as f:
        f.write("epoch,train_loss,val_loss\n")
 
     best_val_loss = float("inf")
@@ -316,14 +324,14 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
         train_loss_list.append(avg_train_loss)
         val_loss_list.append(avg_val_loss)
 
-        with open(f"./{save_path}/training-s{random_seed}.log", "a") as f:
+        with open(f"{save_path}/training-s{random_seed}.log", "a") as f:
             f.write(f"{epoch+1},{avg_train_loss:.4f},{avg_val_loss:.4f}\n")
 
         # Early stopping
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), f"./{save_path}/best_model.pt")
+            torch.save(model.state_dict(), f"{save_path}/best_model.pt")
         else:
             patience_counter += 1
 
@@ -381,6 +389,9 @@ def test(model, graph, threshold=0.5, return_probs=False):
 
 def evaluate(model, test_graphs, target_names=["Not Affected", "Affected"], threshold=0.5, save_path=None, show=True, device="cpu"):
 
+  # Sanitize save_path
+  save_path = save_path.rstrip("/") if save_path is not None else "."
+
   if type(test_graphs) == list:
     pred = []
     labels = []
@@ -412,12 +423,12 @@ def evaluate(model, test_graphs, target_names=["Not Affected", "Affected"], thre
     d["F1 - Avg. Macro"] = f1_macro_avg
     d["F1 - Positives"] = f1_pos
 
-    with open(f"./{save_path}/report.json", "w") as file:
+    with open(f"{save_path}/report.json", "w") as file:
       json.dump(d, file, indent=4)
     
     # Save also all predictions
     results = {"predictions": pred, "labels": labels}
-    with open(f"./{save_path}/predictions.json", "w") as file:
+    with open(f"{save_path}/predictions.json", "w") as file:
       json.dump(results, file, indent=4)
 
   # Compute confusion matrix
@@ -443,7 +454,7 @@ def evaluate(model, test_graphs, target_names=["Not Affected", "Affected"], thre
   fig.tight_layout(pad=40)
 
   if save_path != None:
-     plt.savefig(f"./{save_path}/CM.png", dpi=300, bbox_inches="tight")
+     plt.savefig(f"{save_path}/CM.png", dpi=300, bbox_inches="tight")
 
   # Show plot
   if show:

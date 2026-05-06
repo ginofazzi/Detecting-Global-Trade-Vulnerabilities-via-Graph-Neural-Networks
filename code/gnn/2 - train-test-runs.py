@@ -29,16 +29,17 @@ from utils import resolve_paths
 import warnings
 warnings.filterwarnings("ignore")
 
-READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Results Data"], 
-                                                write_datasets=["Results Data"])
+READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data", "Results Data"], 
+                                                write_datasets=["Results Data", "Training Data"])
 
 ############################################
 ############### Settings ###################
 model_type = "GCN"
+digits = 2
 graphs_type = "export" # "total", "export"
-layered = True
+layered = False
 multi_graph = False
-ablate = None  # "Geo-Positional"  # None, "COI", "ECI", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "# Prod", "SRCA", "Trade Agreements", "Trustworthiness"
+ablate = "Geo-Positional"  # "Geo-Positional"  # None, "COI", "ECI", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "# Prod", "SRCA", "Trade Agreements", "Trustworthiness"
 ############################################
 ############################################
 
@@ -56,7 +57,7 @@ print(f"{ablation_identifier} | {model_type} | {graph_identifier} :: {best_param
 
 # Load graphs
 print("Looking for pre-loaded graphs...")
-train_graphs, test_graphs = get_preloaded_graphs(path=f"../../data/5. Graphs Data/{'multi-graph/' if multi_graph else ''}{graphs_type}")
+train_graphs, test_graphs = get_preloaded_graphs(path=READ_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/{'multi-graph/' if multi_graph else ''}{graphs_type}")
 print("Found pre-loaded graphs!")
 
 if (layered or multi_graph):
@@ -140,8 +141,8 @@ for seed in range(1, 11):
     print(model)
     
     # PATHS
-    training_path = f"./models/training/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
-    evaluation_path = WRITE_DATA_PATHS["6. Results"] + f"{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
+    training_path = WRITE_DATA_PATHS["Training Data"] + f"/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
+    evaluation_path = WRITE_DATA_PATHS["Results Data"] + f"/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
 
     os.makedirs(training_path, exist_ok=True)
     os.makedirs(evaluation_path, exist_ok=True)

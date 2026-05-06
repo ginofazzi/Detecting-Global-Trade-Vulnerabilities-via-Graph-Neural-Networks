@@ -16,7 +16,7 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Trade Da
 
 ### SETTINGS ###
 graphs_type = "export" # "total", "export"
-multi_graph = False
+multi_graph = True
 digits = 4 # 2 or 4
 ################
 
@@ -33,7 +33,7 @@ print("Loading data... (takes around 1h30)")
 train_graphs = []
 test_graphs = []
 
-graphs_root_path = READ_DATA_PATHS["Graphs Data"] + f"{'multi-graph' if multi_graph else ''}/{digits}_digits/{graphs_type}"
+graphs_root_path = READ_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/{'multi-graph' if multi_graph else ''}/{graphs_type}"
 
 if multi_graph:
   # We don't care for individual products
@@ -57,8 +57,9 @@ if multi_graph:
   
 
 else:
-  for i, prod_code in enumerate(products):
 
+  for i, prod_code in enumerate(products):
+      
       train_graphs += load_data(years=list(range(2012,2021)), code=prod_code, labels=labels, label_map=label_map, suffix=graphs_type, \
                                   root_path=graphs_root_path)
       test_graphs.append(
@@ -79,14 +80,15 @@ else:
       #       )
       # )
       if i % 10 == 0:
-        save_object(train_graphs, graphs_root_path + "/train-graphs.pkl")
-        save_object(test_graphs, graphs_root_path + "/test-graphs.pkl")
-      print(f"{i/len(products):.2%}")
+       save_object(train_graphs, graphs_root_path + "/train-graphs.pkl")
+       save_object(test_graphs, graphs_root_path + "/test-graphs.pkl")
+      
+      print(f"{i/len(products):.2%} -> Product code: {prod_code}")
 
 for graph in train_graphs:
   feature_sanity_check(graph)
   print_graph_info(graph)
-  
+
 save_object(train_graphs, graphs_root_path + "/train-graphs.pkl")
 save_object(test_graphs, graphs_root_path + "/test-graphs.pkl")
 #save_object(test_graphs,  graphs_root_path + "/test-2022-graphs.pkl")
