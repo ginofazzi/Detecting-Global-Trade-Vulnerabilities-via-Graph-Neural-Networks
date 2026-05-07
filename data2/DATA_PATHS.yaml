@@ -1,0 +1,18 @@
+LOCAL_DATA_PATH: 
+    UN Comtrade Reporters: ""
+    UN Comtrade Bilateral Trade Data: ""
+    Atlas Trade Data: ""
+    Atlas Products Data: ""
+    Atlas Countries Data: ""
+    BACI Data: ""
+    Additional Data Sources - Country Borders: ""
+    Additional Data Sources - CERDI Sea distance: ""
+    Additional Data Sources - Trading agreements: ""
+    Graphs Data: "./data/5. Graphs Data"
+    Results Data: "./data/6. Results Data"
+
+WRITING_PATHS:
+    UN Comtrade Bilateral Trade Data: ""
+    Graphs Data: "./data/5. Graphs Data"
+    Results Data: "./data/6. Results Data"
+    Training Data: "./code/gnn/models/training"

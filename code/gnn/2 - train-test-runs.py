@@ -37,7 +37,7 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data", 
 model_type = "GCN"
 digits = 2
 graphs_type = "export" # "total", "export"
-layered = False
+layered = True
 multi_graph = False
 ablate = "Geo-Positional"  # "Geo-Positional"  # None, "COI", "ECI", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "# Prod", "SRCA", "Trade Agreements", "Trustworthiness"
 ############################################
@@ -63,7 +63,7 @@ print("Found pre-loaded graphs!")
 if (layered or multi_graph):
     print("Adding layer embeddings...")
     # Read layer embeddings
-    layer_embeddings = pickle.load(open("product_space_embeddings.pickle", "rb"))
+    layer_embeddings = pickle.load(open(READ_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/product_space_embeddings.pickle", "rb"))
     all_graphs = append_layer_embedding(graphs=train_graphs+test_graphs, layer_embeddings=layer_embeddings, multi_graph=multi_graph)
     train_graphs, test_graphs = train_graphs[:len(train_graphs)], all_graphs[len(train_graphs):]
     print(f"New layer shape: {train_graphs[0].x.shape}")
@@ -141,8 +141,8 @@ for seed in range(1, 11):
     print(model)
     
     # PATHS
-    training_path = WRITE_DATA_PATHS["Training Data"] + f"/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
-    evaluation_path = WRITE_DATA_PATHS["Results Data"] + f"/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
+    training_path = WRITE_DATA_PATHS["Training Data"] + f"/{digits}_digits/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
+    evaluation_path = WRITE_DATA_PATHS["Results Data"] + f"/{digits}_digits/{ablation_identifier}/{model_type}/{graph_identifier}/{seed}"
 
     os.makedirs(training_path, exist_ok=True)
     os.makedirs(evaluation_path, exist_ok=True)

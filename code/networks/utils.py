@@ -13,53 +13,80 @@ import json
 import networkx as nx
 import os
 import yaml
+from pathlib import Path
 
 
-def find_relative_path_to_root(absolute_path, root_directory):
-    # Normalize path for consistency
-    absolute_path = os.path.normpath(absolute_path)
-
-    # Split into parts
-    parts = absolute_path.split(os.sep)
-
-    if root_directory not in parts:
-        raise ValueError(f"Root directory '{root_directory}' not found in path")
-
-    # Find index of root directory
-    root_index = parts.index(root_directory)
-
-    # Number of levels below root
-    levels_below = len(parts) - root_index - 1
-
-    # Build relative path
-    return "../" * levels_below
-
+def find_repo_root(start_path=None):
+    """
+    Find the root directory of the repository by traversing upwards
+    until finding a directory containing '.git' or README.md.
+    This works regardless of the repo's cloned location or name.
+    """
+    if start_path is None:
+        start_path = Path(__file__).resolve().parent  # Start from the directory of this file
+    
+    current = start_path
+    while True:
+        if (current / '.git').exists() or (current / 'README.md').exists():
+            return current
+        parent = current.parent
+        if parent == current:  # Reached filesystem root
+            raise FileNotFoundError("Could not find repository root (no '.git' or README.md found)")
+        current = parent
 
 
-def resolve_paths(read_datasets: list, write_datasets: list):
+def _resolve_repo_path(path_value, repo_root):
+    if path_value is None or str(path_value).strip() == "":
+        return ""
 
-    # Find root path
-    current_path = os.getcwd()
-    path_to_yaml = find_relative_path_to_root(absolute_path=current_path, 
-                                              root_directory="Detecting-Global-Trade-Vulnerabilities-via-Graph-Neural-Networks") \
-                    + "data/"
+    path = Path(os.path.expandvars(os.path.expanduser(str(path_value))))
+    if path.is_absolute():
+        return path
 
-    if not os.path.exists(path_to_yaml + "DATA_PATHS.yaml"):
-        raise FileNotFoundError(f"DATA_PATHS.yaml not found at {path_to_yaml + 'DATA_PATHS.yaml'}. Please check the path and try again.")
+    return (repo_root / path).resolve()
 
-    with open(path_to_yaml + "DATA_PATHS.yaml") as stream:
+
+
+def resolve_paths(read_datasets: list, write_datasets: list, data_path="data/"):
+    repo_root = find_repo_root()
+    data_path = Path(data_path)
+    path_to_yaml = data_path if data_path.is_absolute() else repo_root / data_path
+    if path_to_yaml.is_dir():
+        path_to_yaml = path_to_yaml / "DATA_PATHS.yaml"
+
+    if not path_to_yaml.exists():
+        raise FileNotFoundError(f"DATA_PATHS.yaml not found at {path_to_yaml}. Please check the path and try again.")
+
+    with open(path_to_yaml) as stream:
         try:
-            print(f"Loading DATA_PATHS.yaml from {path_to_yaml + 'DATA_PATHS.yaml'}")
+            print(f"Loading DATA_PATHS.yaml from {path_to_yaml}")
             DATA_PATHS = yaml.safe_load(stream)
         except Exception as exc:
-            print(f"Error loading YAML file {path_to_yaml + 'DATA_PATHS.yaml'}: {exc}")
+            raise Exception(f"Error loading YAML file {path_to_yaml}: {exc}")
 
-    for dataset in read_datasets + write_datasets:
-        if dataset not in DATA_PATHS["LOCAL_DATA_PATH"] and dataset not in DATA_PATHS["WRITING_PATHS"]:
-            raise ValueError(f"Dataset {dataset} not found in DATA_PATHS.yaml. Please check the dataset name and try again.")
-        
-    return {dataset: DATA_PATHS["LOCAL_DATA_PATH"][dataset] for dataset in read_datasets}, {dataset: DATA_PATHS["WRITING_PATHS"][dataset] for dataset in write_datasets}
+    local_paths = DATA_PATHS.get("LOCAL_DATA_PATH", {})
+    writing_paths = DATA_PATHS.get("WRITING_PATHS", {})
 
+    missing_read = [dataset for dataset in read_datasets if dataset not in local_paths]
+    missing_write = [dataset for dataset in write_datasets if dataset not in writing_paths]
+    if missing_read or missing_write:
+        missing = missing_read + missing_write
+        raise ValueError(f"Dataset(s) {missing} not found in DATA_PATHS.yaml. Please check the dataset name and try again.")
+
+    read_paths = {dataset: _resolve_repo_path(local_paths[dataset], repo_root) for dataset in read_datasets}
+    write_paths = {dataset: _resolve_repo_path(writing_paths[dataset], repo_root) for dataset in write_datasets}
+
+    empty_read_paths = [dataset for dataset, path in read_paths.items() if path == ""]
+    empty_write_paths = [dataset for dataset, path in write_paths.items() if path == ""]
+    if empty_read_paths or empty_write_paths:
+        missing = empty_read_paths + empty_write_paths
+        raise ValueError(f"Dataset path(s) {missing} are empty in DATA_PATHS.yaml.")
+
+    for dataset, path in read_paths.items():
+        if not path.exists():
+            raise FileNotFoundError(f"Path for dataset '{dataset}' does not exist: {path}")
+
+    return {dataset: str(path) for dataset, path in read_paths.items()}, {dataset: str(path) for dataset, path in write_paths.items()}
 
 def load_atlas_data(data_path):
     
