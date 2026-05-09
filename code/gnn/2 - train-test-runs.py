@@ -34,20 +34,27 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data", 
 
 ############################################
 ############### Settings ###################
-model_type = "GCN"
-digits = 2
+model_type = "MLP"
+digits = 4
 graphs_type = "export" # "total", "export"
-layered = True
+layered = False
 multi_graph = False
-ablate = "Geo-Positional"  # "Geo-Positional"  # None, "COI", "ECI", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "# Prod", "SRCA", "Trade Agreements", "Trustworthiness"
+ablate = None
+use_gpu = False
+# Ablations
+## Multi-Layers (10): "COI", "ECI", "# Prod", "SRCA", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "Trade Agreements"
+## Multi-Graph (9): "COI", "ECI", "Geo-Positional", "HHI", "Export Value", "Avg.PCI", "# Prod", "Trade Agreements", "Trustworthiness"
 ############################################
 ############################################
 
 graph_identifier = f"{'multi-graph-' if multi_graph else ''}{graphs_type}{'-layered' if (layered and not multi_graph) else ''}"
 ablation_identifier = f"{'Ablation - ' + ablate if ablate else 'No Ablation'}"
 
-# GPU if possible
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if use_gpu:
+    # GPU if possible
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+else:
+    device = torch.device('cpu')
 print("Device: ", device)
 
 # Best parameters from Optuna
@@ -125,7 +132,7 @@ for seed in range(1, 11):
 
         model = GraphSAGE(num_features=num_features, hidden_channels=best_params["hidden_channels"], num_classes=num_classes, \
                 n_layers=best_params["n_layers"], dropout=best_params["dropout"], aggr=best_params["aggr"], normalize=best_params["normalize"],\
-                      project=best_params["project"], bias=best_params["bias"])
+                    project=best_params["project"], bias=best_params["bias"])
 
     elif model_type == "RandomForest":
 
@@ -173,6 +180,9 @@ for seed in range(1, 11):
     model = model.to(device)  # move model to GPU
 
     # Optimizer
+    if "weight_decay" not in best_params:
+        best_params["weight_decay"] = 0.01 # Default weight decay if not specified
+
     if best_params['optimizer'] == "Adam":
         optimizer = torch.optim.Adam(model.parameters(), lr=best_params['lr'], weight_decay=best_params['weight_decay'])
     elif best_params['optimizer'] == "AdamW":
@@ -192,15 +202,17 @@ for seed in range(1, 11):
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = None # Not use it for now
     
+    
     print("Starting training.")
 
     l, v, epoch_times = train(model=model, train_graphs=train_graphs, optimizer=optimizer, criterion=criterion, \
-                       scheduler=scheduler, epochs=500, batch_size=-1, patience=50, \
-                           save_path=training_path, random_seed=seed, device=device, retain_graph=True)
+                    scheduler=scheduler, epochs=500, batch_size=-1, patience=50, \
+                        save_path=training_path, random_seed=seed, device=device, retain_graph=True)
 
     nr_epochs.append(len(epoch_times))
     plot_train_curves(l, v, save_path=training_path, show=False)
     
+
     # Load best model from training for evaluation
     model.load_state_dict(torch.load(f"{training_path}/best_model.pt", weights_only=True))
 
