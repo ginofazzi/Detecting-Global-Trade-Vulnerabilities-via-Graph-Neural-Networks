@@ -248,6 +248,9 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
 
     train_idx = list(range(len(train_graphs))) # Indeces for batching
 
+    if batch_size != -1 and batch_size <= 0:
+        raise ValueError("batch_size must be a positive integer, or -1 to disable batching.")
+
     # Create mini-batches
     if batch_size != -1:
         batch_idxs = [train_idx[i:i+batch_size] for i in range(0, len(train_idx), batch_size)]
@@ -268,23 +271,23 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
         total_train_loss = 0
         total_val_loss = 0
 
-        # Pick batch (cycled if nbatches < epochs)
-        batch_ids = batch_idxs[epoch % nbatches]
-        training_batch = [train_graphs[i] for i in batch_ids]
-
         model.train()
-        for graph in training_batch:
-            #if graph.y.sum() == 0:
-            #    continue  # Skip graphs without training nodes
-            graph = graph.to(device)  # Move to GPU
-            optimizer.zero_grad()
-            out = model(graph)
+        train_loss_count = 0
+        for batch_ids in batch_idxs:
+            training_batch = [train_graphs[i] for i in batch_ids]
+            for graph in training_batch:
+                #if graph.y.sum() == 0:
+                #    continue  # Skip graphs without training nodes
+                graph = graph.to(device)  # Move to GPU
+                optimizer.zero_grad()
+                out = model(graph)
 
-            loss = criterion(out, graph.y.float())
-            loss.backward(retain_graph=retain_graph)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-            total_train_loss += loss.item()
+                loss = criterion(out, graph.y.float())
+                loss.backward(retain_graph=retain_graph)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                total_train_loss += loss.item()
+                train_loss_count += 1
 
         # Validation
         val_preds = []
@@ -304,7 +307,7 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
                 val_labels.append(labels)
 
         # Avoid division by zero if all graphs were skipped
-        train_loss_count = len(training_batch)#len([g for g in training_batch if g.y.sum() > 0])
+        #train_loss_count = len([g for g in training_batch if g.y.sum() > 0])
         val_loss_count = len(valid_graphs)
 
         # Concatenate all graphs' predictions & labels

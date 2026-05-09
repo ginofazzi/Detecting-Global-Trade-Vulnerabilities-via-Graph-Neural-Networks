@@ -52,9 +52,9 @@ ablation_identifier = f"{'Ablation - ' + ablate if ablate else 'No Ablation'}"
 
 if use_gpu:
     # GPU if possible
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 else:
-    device = torch.device('cpu')
+    device = 'cpu'
 print("Device: ", device)
 
 # Best parameters from Optuna
@@ -195,6 +195,8 @@ for seed in range(1, 11):
                                                 momentum=best_params['momentum'])
     elif best_params['optimizer'] == "Adagrad":
         optimizer = torch.optim.Adagrad(model.parameters(), lr=best_params['lr'], weight_decay=best_params['weight_decay'])
+    else:
+        raise ValueError(f"Optimizer {best_params['optimizer']} not recognized.")
     
     # Define weighted loss
     criterion = SoftF1Loss(pos_weight=pos_weight).to(device)
