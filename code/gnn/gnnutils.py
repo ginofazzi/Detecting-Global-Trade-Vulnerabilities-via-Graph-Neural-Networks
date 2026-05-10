@@ -246,20 +246,17 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
       train_graphs, train_ratio=train_ratio, random_seed=random_seed
     )
 
-    train_idx = list(range(len(train_graphs))) # Indeces for batching
-
     if batch_size != -1 and batch_size <= 0:
         raise ValueError("batch_size must be a positive integer, or -1 to disable batching.")
 
-    # Create mini-batches
-    if batch_size != -1:
-        batch_idxs = [train_idx[i:i+batch_size] for i in range(0, len(train_idx), batch_size)]
-        nbatches = len(batch_idxs)
-        print(f"Using {nbatches} batches of {batch_size} graphs each.")
+    effective_batch_size = len(train_graphs) if batch_size == -1 else batch_size
+    train_loader = DataLoader(train_graphs, batch_size=effective_batch_size, shuffle=True)
+    valid_loader = DataLoader(valid_graphs, batch_size=effective_batch_size, shuffle=False)
+    nbatches = len(train_loader)
+    if batch_size == -1:
+        print(f"Training on all {len(train_graphs)} graphs in a single full batch.")
     else:
-        print("Training on all graphs (no batching)")
-        batch_idxs = [train_idx]
-        nbatches = 1
+        print(f"Using {nbatches} mini-batches of up to {batch_size} graphs each.")
 
     epoch_times = []
 
@@ -273,21 +270,17 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
 
         model.train()
         train_loss_count = 0
-        for batch_ids in batch_idxs:
-            training_batch = [train_graphs[i] for i in batch_ids]
-            for graph in training_batch:
-                #if graph.y.sum() == 0:
-                #    continue  # Skip graphs without training nodes
-                graph = graph.to(device)  # Move to GPU
-                optimizer.zero_grad()
-                out = model(graph)
+        for batch in train_loader:
+            batch = batch.to(device)  # Move to GPU
+            optimizer.zero_grad()
+            out = model(batch)
 
-                loss = criterion(out, graph.y.float())
-                loss.backward(retain_graph=retain_graph)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                optimizer.step()
-                total_train_loss += loss.item()
-                train_loss_count += 1
+            loss = criterion(out, batch.y.float())
+            loss.backward(retain_graph=retain_graph)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            total_train_loss += loss.item() * batch.num_graphs
+            train_loss_count += batch.num_graphs
 
         # Validation
         val_preds = []
@@ -295,14 +288,14 @@ def train(model, train_graphs, optimizer, criterion, scheduler=None,
 
         model.eval()
         with torch.no_grad():
-            for graph in valid_graphs:
-                graph = graph.to(device)  # Move to GPU
-                out = model(graph)
-                val_loss = criterion(out, graph.y.float())
-                total_val_loss += val_loss.item()
+            for batch in valid_loader:
+                batch = batch.to(device)  # Move to GPU
+                out = model(batch)
+                val_loss = criterion(out, batch.y.float())
+                total_val_loss += val_loss.item() * batch.num_graphs
                 probs = torch.sigmoid(out).cpu()
                 preds = (probs > 0.5).long()
-                labels = graph.y.cpu().long()
+                labels = batch.y.cpu().long()
                 val_preds.append(preds)
                 val_labels.append(labels)
 

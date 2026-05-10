@@ -40,7 +40,8 @@ graphs_type = "export" # "total", "export"
 layered = False
 multi_graph = False
 ablate = None
-use_gpu = False
+use_gpu = True
+batch_size = 100 # -1 for full batch
 # Ablations
 ## Multi-Layers (10): "COI", "ECI", "# Prod", "SRCA", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "Trade Agreements"
 ## Multi-Graph (9): "COI", "ECI", "Geo-Positional", "HHI", "Export Value", "Avg.PCI", "# Prod", "Trade Agreements", "Trustworthiness"
@@ -208,8 +209,8 @@ for seed in range(1, 11):
     print("Starting training.")
 
     l, v, epoch_times = train(model=model, train_graphs=train_graphs, optimizer=optimizer, criterion=criterion, \
-                    scheduler=scheduler, epochs=500, batch_size=-1, patience=50, \
-                        save_path=training_path, random_seed=seed, device=device, retain_graph=True)
+                    scheduler=scheduler, epochs=500, batch_size=batch_size, patience=50, \
+                        save_path=training_path, random_seed=seed, device=device, retain_graph=False)
 
     nr_epochs.append(len(epoch_times))
     plot_train_curves(l, v, save_path=training_path, show=False)
