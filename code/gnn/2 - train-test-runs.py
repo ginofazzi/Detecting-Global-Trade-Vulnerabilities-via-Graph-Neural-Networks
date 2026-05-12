@@ -19,6 +19,8 @@ from functools import total_ordering
 import os
 import pickle
 import json
+import sys
+import argparse
 
 # Custom
 import sys;sys.path.append("../networks")
@@ -34,14 +36,47 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Products
 
 ############################################
 ############### Settings ###################
-model_type = "MLP"
-digits = 4
-graphs_type = "export" # "total", "export"
-layered = True
-multi_graph = False
-ablate = None
-use_gpu = True
-batch_size = 100 # -1 for full batch
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train and evaluate GNN models.")
+    parser.add_argument("--model-type", choices=["MLP", "GCN", "GAT", "SAGE", "RandomForest", "XGBoost"], default="MLP")
+    parser.add_argument("--digits", type=int, choices=[2, 4], default=4)
+    parser.add_argument("--graphs-type", choices=["total", "export"], default="export")
+    parser.add_argument("--layered", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--multi-graph", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--ablate", default=None)
+    parser.add_argument("--use-gpu", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--batch-size", type=int, default=100, help="Use -1 for full-batch training.")
+    args = parser.parse_args()
+
+    if args.batch_size != -1 and args.batch_size <= 0:
+        parser.error("--batch-size must be a positive integer, or -1 for full-batch training.")
+
+    if args.ablate == "None":
+        args.ablate = None
+
+    allowed_ablations = {
+        False: {"COI", "ECI", "# Prod", "SRCA", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "Trade Agreements"},
+        True: {"COI", "ECI", "Geo-Positional", "HHI", "Export Value", "Avg.PCI", "# Prod", "Trade Agreements", "Trustworthiness"},
+    }
+    if args.ablate is not None and args.ablate not in allowed_ablations[args.multi_graph]:
+        parser.error(
+            f"--ablate must be one of {sorted(allowed_ablations[args.multi_graph])}, or None "
+            f"when --{'multi-graph' if args.multi_graph else 'no-multi-graph'} is used."
+        )
+
+    return args
+
+
+args = parse_args()
+model_type = args.model_type
+digits = args.digits
+graphs_type = args.graphs_type
+layered = args.layered
+multi_graph = args.multi_graph
+ablate = args.ablate
+use_gpu = args.use_gpu
+batch_size = args.batch_size
 # Ablations
 ## Multi-Layers (10): "COI", "ECI", "# Prod", "SRCA", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "Trade Agreements"
 ## Multi-Graph (9): "COI", "ECI", "Geo-Positional", "HHI", "Export Value", "Avg.PCI", "# Prod", "Trade Agreements", "Trustworthiness"
