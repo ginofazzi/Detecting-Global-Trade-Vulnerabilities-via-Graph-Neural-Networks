@@ -24,12 +24,12 @@ import json
 import sys;sys.path.append("../networks")
 from gnnutils import *
 from models import *
-from utils import resolve_paths
+from utils import resolve_paths, get_product_list
 
 import warnings
 warnings.filterwarnings("ignore")
 
-READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data", "Results Data"], 
+READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Products Data", "Graphs Data", "Results Data"], 
                                                 write_datasets=["Results Data", "Training Data"])
 
 ############################################
@@ -37,7 +37,7 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data", 
 model_type = "MLP"
 digits = 4
 graphs_type = "export" # "total", "export"
-layered = False
+layered = True
 multi_graph = False
 ablate = None
 use_gpu = True
@@ -70,9 +70,11 @@ print("Found pre-loaded graphs!")
 
 if (layered or multi_graph):
     print("Adding layer embeddings...")
+
+    layer_ids = get_product_list(digits=digits)
     # Read layer embeddings
     layer_embeddings = pickle.load(open(READ_DATA_PATHS["Graphs Data"] + f"/{digits}_digits/product_space_embeddings.pickle", "rb"))
-    all_graphs = append_layer_embedding(graphs=train_graphs+test_graphs, layer_embeddings=layer_embeddings, multi_graph=multi_graph)
+    all_graphs = append_layer_embedding(graphs=train_graphs+test_graphs, layer_embeddings=layer_embeddings, layer_ids=layer_ids, multi_graph=multi_graph)
     train_graphs, test_graphs = train_graphs[:len(train_graphs)], all_graphs[len(train_graphs):]
     print(f"New layer shape: {train_graphs[0].x.shape}")
 

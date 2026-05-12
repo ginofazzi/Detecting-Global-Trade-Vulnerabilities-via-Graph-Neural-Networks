@@ -523,19 +523,23 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False    
 
 
-def append_layer_embedding(graphs, layer_embeddings, multi_graph=False, years=None):
+def append_layer_embedding(graphs, layer_embeddings, layer_ids=None, multi_graph=False, years=None):
 
   if years == None:
     years = list(range(2012, 2022))  # Default years from 2012 to 2021
+
+  if layer_ids == None:
+     valid_codes = [i for i in range(1, 100) if i not in (77, 98, 99)]
+  else:
+    valid_codes = layer_ids
   
   print(f"Previous edge features shape: {graphs[0].edge_attr.shape}")
   
   # If multi-graph, the layer embedding gets appended to edges
   if multi_graph:
     # Mapping for annying Layer ids
-    valid_codes = [i for i in range(1, 100) if i not in (77, 98, 99)]
     code2idx = {code: idx for idx, code in enumerate(valid_codes)}
-    lut = torch.full((98,), -1, dtype=torch.long)  # default -1 for “invalid”
+    lut = torch.full((len(valid_codes),), -1, dtype=torch.long)  # default -1 for “invalid”
     
     for code, idx in code2idx.items():
       lut[code] = idx
@@ -553,8 +557,8 @@ def append_layer_embedding(graphs, layer_embeddings, multi_graph=False, years=No
   else:
 
     for i, graph in enumerate(graphs):
-      layer_id = torch.tensor(i // (len(graphs)//96)) # 9 years per layer
-      year = years[i % (len(graphs)//96)] # years from 2012 to 2020, and restart
+      layer_id = torch.tensor(i // (len(graphs)//len(valid_codes))) # 9 years per layer
+      year = years[i % (len(graphs)//len(valid_codes))] # years from 2012 to 2020, and restart
       print(f"Graph {i} | Year: {year} | Layer ID: {layer_id.item()}")
       # Get Layer Embedding
       layer_emb = layer_embeddings[year][layer_id].to(dtype=torch.float32)  # Get layer embedding
