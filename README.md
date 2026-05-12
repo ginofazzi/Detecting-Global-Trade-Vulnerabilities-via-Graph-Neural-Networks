@@ -150,14 +150,40 @@ Download the following publicly available datasets:
 
 The main training and evaluation script is:
 
-- `code/gnn/train-test-runs.py`
+- `code/gnn/2 - train-test-runs.py`
 
 Important setup notes:
 
 - The script reads preprocessed graphs from `data/5. Graphs Data/`.
-- Use the `model_type`, `graphs_type`, `layered`, and `multi_graph` variables at the top of `train-test-runs.py` to select the model and graph representation.
+- Run the script from `code/gnn/` and use command-line arguments to select the model, graph representation, ablation, device, and batch size.
 - Best hyperparameters are loaded from `code/gnn/models/best_params.json`.
 - The script saves trained models and evaluation results under `code/gnn/models/training/` and `code/gnn/results/`.
+
+Example runs:
+
+```bash
+cd code/gnn
+python "2 - train-test-runs.py" --model-type GCN --digits 4 --graphs-type export --layered --batch-size 100
+python "2 - train-test-runs.py" --model-type XGBoost --multi-graph --graphs-type total --ablate Trustworthiness --no-use-gpu
+python "2 - train-test-runs.py" --model-type GAT --batch-size -1
+```
+
+Available arguments:
+
+| Argument | Options / behavior | Default |
+| --- | --- | --- |
+| `--model-type` | `MLP`, `GCN`, `GAT`, `SAGE`, `RandomForest`, `XGBoost` | `MLP` |
+| `--digits` | Product aggregation level: `2` or `4` | `4` |
+| `--graphs-type` | `total` or `export` | `export` |
+| `--layered`, `--no-layered` | Add product-layer embeddings for multilayer graphs. Ignored in the graph identifier when `--multi-graph` is used. | `--no-layered` |
+| `--multi-graph`, `--no-multi-graph` | Use flattened multigraph inputs instead of multilayer graph inputs. | `--no-multi-graph` |
+| `--ablate` | Attribute to remove, or `None` for no ablation. Valid attributes depend on whether `--multi-graph` is used. | `None` |
+| `--use-gpu`, `--no-use-gpu` | Use CUDA when available, or force CPU. Classical baselines evaluate on CPU. | `--use-gpu` |
+| `--batch-size` | Positive integer mini-batch size, or `-1` for full-batch training. | `100` |
+
+Ablation options for multilayer runs are `COI`, `ECI`, `# Prod`, `SRCA`, `Geo-Positional`, `HHI`, `TI`, `Export Value`, `Avg.PCI`, and `Trade Agreements`.
+
+Ablation options for multigraph runs are `COI`, `ECI`, `Geo-Positional`, `HHI`, `Export Value`, `Avg.PCI`, `# Prod`, `Trade Agreements`, and `Trustworthiness`.
 
 ### Dependencies
 
@@ -184,7 +210,7 @@ If you want to reproduce the experiments:
 
 1. Download and prepare the raw trade and auxiliary data in `data/`.
 2. Run the graph generation scripts in `code/networks/`.
-3. Run `code/gnn/train-test-runs.py`.
+3. From `code/gnn/`, run `python "2 - train-test-runs.py"` with the desired arguments.
 
 ## Contact
 

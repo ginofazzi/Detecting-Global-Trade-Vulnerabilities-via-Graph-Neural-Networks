@@ -47,6 +47,7 @@ def parse_args():
     parser.add_argument("--ablate", default=None)
     parser.add_argument("--use-gpu", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--batch-size", type=int, default=100, help="Use -1 for full-batch training.")
+    parser.add_argument("--train-from-scratch", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
 
     if args.batch_size != -1 and args.batch_size <= 0:
@@ -77,6 +78,7 @@ multi_graph = args.multi_graph
 ablate = args.ablate
 use_gpu = args.use_gpu
 batch_size = args.batch_size
+train_from_scratch = args.train_from_scratch
 # Ablations
 ## Multi-Layers (10): "COI", "ECI", "# Prod", "SRCA", "Geo-Positional", "HHI", "TI", "Export Value", "Avg.PCI", "Trade Agreements"
 ## Multi-Graph (9): "COI", "ECI", "Geo-Positional", "HHI", "Export Value", "Avg.PCI", "# Prod", "Trade Agreements", "Trustworthiness"
@@ -242,24 +244,24 @@ for seed in range(1, 11):
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = None # Not use it for now
     
+    if train_from_scratch:
+        print("Starting training.")
+
+        l, v, epoch_times = train(model=model, train_graphs=train_graphs, optimizer=optimizer, criterion=criterion, \
+                        scheduler=scheduler, epochs=500, batch_size=batch_size, patience=50, \
+                            save_path=training_path, random_seed=seed, device=device, retain_graph=False)
+
+        nr_epochs.append(len(epoch_times))
+        plot_train_curves(l, v, save_path=training_path, show=False)
     
-    print("Starting training.")
-
-    l, v, epoch_times = train(model=model, train_graphs=train_graphs, optimizer=optimizer, criterion=criterion, \
-                    scheduler=scheduler, epochs=500, batch_size=batch_size, patience=50, \
-                        save_path=training_path, random_seed=seed, device=device, retain_graph=False)
-
-    nr_epochs.append(len(epoch_times))
-    plot_train_curves(l, v, save_path=training_path, show=False)
     
-
     # Load best model from training for evaluation
     model.load_state_dict(torch.load(f"{training_path}/best_model.pt", weights_only=True))
 
     # Moving to CPU for evaluation
     model = model.to("cpu")
     criterion = criterion.to("cpu")
-
+    
     _, valid_graphs = split_graphs_for_validation(train_graphs, random_seed=seed)
     tuned_threshold = tune_threshold(model, valid_graphs, device="cpu", threshold_candidates=np.linspace(0.5, 0.99, 50))
     with open(training_path + "/threshold.json", "w") as f:

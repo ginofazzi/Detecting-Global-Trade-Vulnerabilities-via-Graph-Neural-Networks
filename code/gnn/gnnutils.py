@@ -538,10 +538,12 @@ def append_layer_embedding(graphs, layer_embeddings, layer_ids=None, multi_graph
   # If multi-graph, the layer embedding gets appended to edges
   if multi_graph:
     # Mapping for annying Layer ids
+    valid_codes = [int(x) for x in valid_codes]
     code2idx = {code: idx for idx, code in enumerate(valid_codes)}
-    lut = torch.full((len(valid_codes),), -1, dtype=torch.long)  # default -1 for “invalid”
-    
+    lut = torch.full((max(valid_codes)+1,), -1, dtype=torch.long)  # default -1 for “invalid”
+
     for code, idx in code2idx.items():
+      print(code)
       lut[code] = idx
 
     for year, graph in zip(years, graphs):
