@@ -543,7 +543,6 @@ def append_layer_embedding(graphs, layer_embeddings, layer_ids=None, multi_graph
     lut = torch.full((max(valid_codes)+1,), -1, dtype=torch.long)  # default -1 for “invalid”
 
     for code, idx in code2idx.items():
-      print(code)
       lut[code] = idx
 
     for year, graph in zip(years, graphs):
