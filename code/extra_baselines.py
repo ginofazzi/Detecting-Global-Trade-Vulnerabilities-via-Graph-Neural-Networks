@@ -16,9 +16,37 @@ def _num_nodes_from_edges(edge_index: torch.Tensor, num_nodes: Optional[int]) ->
 
 
 def _edge_weight_from_graph(graph, edge_attr_weight_col: int = 0) -> torch.Tensor:
+    # Compiled multi-graphs keep the product code in ``edge_weight`` as well as
+    # moving it to ``edge_id``.  Their actual (log) trade value is the first
+    # remaining edge attribute.  Prefer that column whenever ``edge_id`` marks
+    # the graph as a compiled multi-graph, so existing pickle files remain
+    # usable without regeneration.
+    if (
+        getattr(graph, "edge_id", None) is not None
+        and hasattr(graph, "edge_attr")
+        and graph.edge_attr is not None
+    ):
+        if (
+            graph.edge_attr.ndim != 2
+            or not 0 <= edge_attr_weight_col < graph.edge_attr.size(1)
+        ):
+            raise ValueError(
+                f"edge_attr_weight_col={edge_attr_weight_col} is invalid for "
+                f"edge_attr with shape {tuple(graph.edge_attr.shape)}."
+            )
+        return graph.edge_attr[:, edge_attr_weight_col]
+
     if hasattr(graph, "edge_weight") and graph.edge_weight is not None:
         return graph.edge_weight
     if hasattr(graph, "edge_attr") and graph.edge_attr is not None:
+        if (
+            graph.edge_attr.ndim != 2
+            or not 0 <= edge_attr_weight_col < graph.edge_attr.size(1)
+        ):
+            raise ValueError(
+                f"edge_attr_weight_col={edge_attr_weight_col} is invalid for "
+                f"edge_attr with shape {tuple(graph.edge_attr.shape)}."
+            )
         return graph.edge_attr[:, edge_attr_weight_col]
     raise ValueError("Graph must have either edge_weight or edge_attr.")
 
@@ -47,6 +75,12 @@ def _prepare_edge_weight(
     else:
         raise ValueError("weight_transform must be one of None, 'exp', or 'expm1'.")
 
+    if not torch.all(torch.isfinite(weights)):
+        raise ValueError(
+            "Baseline risk metrics require finite edge weights after applying "
+            f"weight_transform={weight_transform!r}. Inspect the selected edge-weight "
+            "column or use the appropriate transform."
+        )
     if torch.any(weights < 0):
         raise ValueError(
             "Baseline risk metrics require non-negative edge weights. "

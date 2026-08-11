@@ -18,7 +18,9 @@ READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Atlas Trade Da
                                                                 "Results Data"])
 
 ### SETTINGS ###
-digits = 2
+digits = 4
+models = ["GAT"]#["MLP", "GCN", "GAT", "SAGE"]
+graph_types = ["export"]#["export", "export-layered", "total"]
 ################
 
 # Read imports volume data
@@ -35,7 +37,7 @@ atlas = atlas.merge(products, on="product_id", how="left", indicator=False)
 
 imports = atlas[["year", "country_id", "code", "import_value"]].groupby(["year", "country_id", "code"]).sum().reset_index()
 
-for graph_type in ["export", "export-layered", "total"]:
+for graph_type in graph_types:
 
     print(graph_type)
 
@@ -51,7 +53,7 @@ for graph_type in ["export", "export-layered", "total"]:
             _ = _.reset_index(drop=False, inplace=False).rename(columns={"index": "local_index"}, inplace=False)
             country_ids = pd.concat([country_ids, _], axis=0)
 
-    for model in ["MLP", "GCN", "GAT", "SAGE"]:
+    for model in models:
         
         print(model)
 

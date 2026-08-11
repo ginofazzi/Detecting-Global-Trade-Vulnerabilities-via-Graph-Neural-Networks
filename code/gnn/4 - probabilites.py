@@ -28,23 +28,24 @@ from models import *
 
 READ_DATA_PATHS, WRITE_DATA_PATHS = resolve_paths(read_datasets=["Graphs Data",
                                                                  "Results Data"], 
-                                                write_datasets=["Graphs Data"])
+                                                write_datasets=["Graphs Data",
+                                                                "Results Data"])
 
 ##########################################################
 
 
 ### SETTINGS ###
 model_type = "GAT"
-layered = True
+layered = False
 multi_graph = False
-digits = 2 # 2 or 4
+digits = 4 # 2 or 4
 #################
 
 prob_results = {"Graph": [], "Model": [], "Seed": [], "Year": [], "NodePosition": [], "Probability": []}
 
 for model_type in ["GAT"]:
     for graphs_type in ["export"]:
-        for layered in [True]:
+        for layered in [False]:
             if graphs_type == "total" and layered:
                 continue
             for multi_graph in [True, False]:
@@ -65,7 +66,7 @@ for model_type in ["GAT"]:
                 # Load graphs
                 print("Looking for pre-loaded graphs...")
                 train_graphs, test_graphs = get_preloaded_graphs(path=READ_DATA_PATHS["Graphs Data"] + 
-                                                                 f"/{'multi-graph/' if multi_graph else ''}{graphs_type}")
+                                                                 f"/{digits}_digits/{'multi-graph/' if multi_graph else ''}{graphs_type}")
                 print("Found pre-loaded graphs!")
 
                 if layered:
